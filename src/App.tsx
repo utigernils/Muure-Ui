@@ -27,8 +27,8 @@ interface AppConfig {
     latitude: number;
     longitude: number;
   };
-  leftWidgets: WidgetConfig[];
-  rightWidgets: WidgetConfig[];
+  leftWidget: WidgetConfig;
+  rightWidget: WidgetConfig;
 }
 
 function App() {
@@ -98,26 +98,26 @@ function App() {
   return (
     <div className="grid grid-cols-2 grid-rows-2 gap-2 h-screen p-4">
       <WidgetContainer 
-        title={config.leftWidgets[0]?.title} 
-        icon={config.leftWidgets[0]?.icon} 
+        title={config.leftWidget?.title} 
+        icon={config.leftWidget?.icon} 
         className="row-span-3"
       >
-        {config.leftWidgets.map((widgetConfig, index) => (
-          <div key={index} className="w-full h-full">{renderWidget(widgetConfig)}</div>
-        ))}
+        {config.leftWidget && (
+          <div className="w-full h-full">{renderWidget(config.leftWidget)}</div>
+        )}
       </WidgetContainer>
       <div className="col-start-2 row-start-1 row-span-3 grid grid-rows-3 gap-2">
         <WidgetContainer className="row-span-1">
           <ClockWidget />
         </WidgetContainer>
         <WidgetContainer 
-          title={config.rightWidgets[0]?.title} 
-          icon={config.rightWidgets[0]?.icon} 
+          title={config.rightWidget?.title} 
+          icon={config.rightWidget?.icon} 
           className="row-span-2"
         >
-          {config.rightWidgets.map((widgetConfig, index) => (
-            <div key={index} className="w-full h-full">{renderWidget(widgetConfig)}</div>
-          ))}
+        {config.rightWidget && (
+          <div className="w-full h-full">{renderWidget(config.rightWidget)}</div>
+        )}
         </WidgetContainer>
       </div>
     </div>
