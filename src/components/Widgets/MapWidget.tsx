@@ -1,20 +1,50 @@
 import { useEffect, useState } from "react";
 
+interface Location {
+  address: string,
+  city: string,
+  country: string
+}
+
 function MapWidget() {
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
   const [mapUrl, setMapUrl] = useState(`${backendUrl}/api/map`);
+  const [location, setLocation] = useState<Location | null>(null);
 
   useEffect(() => {
-    // Refresh the image every minute. The server only refetches from
-    // Google when the position has changed.
+    const fetchLocationData = async() => {
+      try {
+        const backendUrl =
+          import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+        const response = await fetch(`${backendUrl}/api/map/position`);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch Location data");
+        }
+
+        const data = await response.json();
+        setLocation(data);
+      } catch (err) {
+        console.error("Error fetching Location data:", err);
+      }
+    };
+
     const interval = setInterval(() => {
       setMapUrl(`${backendUrl}/api/map?t=${Date.now()}`);
-    }, 60000);
+      fetchLocationData();
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [backendUrl]);
 
-  return <img src={mapUrl} alt="Karte" className="w-full h-full object-cover" />;
+  return (
+    <div>
+      <img src={mapUrl} alt="Karte" className="w-full h-full object-cover" />
+      <p>{location?.address}</p>
+      <p>{location?.city}</p>
+      <p>{location?.country}</p>
+    </div>
+  );
 }
 
 export default MapWidget;
