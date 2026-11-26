@@ -1,128 +1,55 @@
-import { useEffect, useRef, useState } from "react";
-import { useGoogleMaps } from "../../hooks/useGoogleMaps";
+import { useEffect, useState } from "react";
 
-interface MapWidgetProps {
-  zoom?: number;
-  mapStyleId?: string;
+interface Location {
+  address: string,
+  city: string,
+  country: string
 }
 
-interface PositionData {
-  latitude: number;
-  longitude: number;
-  accuracy: number;
-  timestamp: string | null;
-}
+function MapWidget() {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+  const [mapUrl, setMapUrl] = useState(`${backendUrl}/api/map`);
+  const [location, setLocation] = useState<Location | null>(null);
 
-function MapWidget({
-  zoom = 15,
-  mapStyleId = undefined,
-}: MapWidgetProps) {
-  const { isLoaded, error } = useGoogleMaps();
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markerRef = useRef<google.maps.Marker | null>(null);
-  const [position, setPosition] = useState<PositionData | null>(null);
-  const [positionError, setPositionError] = useState<string | null>(null);
-
-  // Fetch position data from API
   useEffect(() => {
-    const fetchPosition = async () => {
+    const fetchLocationData = async() => {
       try {
-        const response = await fetch("http://localhost:8000/api/position");
+        const backendUrl =
+          import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+        const response = await fetch(`${backendUrl}/api/map/position`);
+
         if (!response.ok) {
-          throw new Error("Failed to fetch position");
+          throw new Error("Failed to fetch Location data");
         }
-        const data: PositionData = await response.json();
-        setPosition(data);
-        setPositionError(null);
+
+        const data = await response.json();
+        setLocation(data);
       } catch (err) {
-        console.error("Error fetching position:", err);
-        setPositionError("Failed to fetch position");
+        console.error("Error fetching Location data:", err);
       }
     };
 
-    // Fetch immediately
-    fetchPosition();
+    fetchLocationData();
 
-    // Set up interval to fetch every 30 seconds
-    const intervalId = setInterval(fetchPosition, 30000);
+    const interval = setInterval(() => {
+      setMapUrl(`${backendUrl}/api/map?t=${Date.now()}`);
+      fetchLocationData();
+    }, 30000);
 
-    // Cleanup interval on unmount
-    return () => clearInterval(intervalId);
-  }, []);
+    return () => clearInterval(interval);
+  }, [backendUrl]);
 
-  // Initialize map when Google Maps loads and position is available
-  useEffect(() => {
-    if (!mapRef.current || !isLoaded || !position) return;
-
-    const map = new google.maps.Map(mapRef.current, {
-      center: { lat: position.latitude, lng: position.longitude },
-      zoom: zoom,
-      mapId: mapStyleId,
-      disableDefaultUI: true,
-      gestureHandling: "greedy",
-    });
-
-    mapInstanceRef.current = map;
-
-    const svgMarker = {
-      path: google.maps.SymbolPath.CIRCLE,
-      strokeColor: "#000000ff",
-      strokeWeight: 2,
-      fillColor: "#ffffffff",
-      fillOpacity: 1,
-      scale: 8,
-    };
-
-    const marker = new google.maps.Marker({
-      position: { lat: position.latitude, lng: position.longitude },
-      map: map,
-      icon: svgMarker,
-    });
-
-    markerRef.current = marker;
-
-    return () => {
-      if (markerRef.current) {
-        markerRef.current.setMap(null);
-      }
-    };
-  }, [isLoaded, position, zoom, mapStyleId]);
-
-  // Update marker position when position changes
-  useEffect(() => {
-    if (mapInstanceRef.current && markerRef.current && position) {
-      const newPosition = { lat: position.latitude, lng: position.longitude };
-      markerRef.current.setPosition(newPosition);
-      mapInstanceRef.current.panTo(newPosition);
-    }
-  }, [position]);
-
-  if (error) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-red-500">
-        Failed to load Google Maps
-      </div>
-    );
-  }
-
-  if (positionError) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-red-500">
-        {positionError}
-      </div>
-    );
-  }
-
-  if (!isLoaded || !position) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-gray-500">
-        Loading map...
-      </div>
-    );
-  }
-
-  return <div ref={mapRef} className="w-full h-full" />;
+  return (
+    <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
+      <img src={mapUrl} alt="Karte" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute bottom-4 left-4 z-10 bg-white rounded-2xl p-4 mr-4">
+          <p className="text-lg text-center m-0">
+            {location ? `${location.address}, ${location.city}, ${location.country}` : "Lädt..."}
+          </p>
+        </div>
+    </div>
+  );
 }
 
 export default MapWidget;
+
