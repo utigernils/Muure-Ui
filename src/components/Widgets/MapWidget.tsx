@@ -42,7 +42,7 @@ function MapWidget() {
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
       <img src={mapUrl} alt="Karte" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute bottom-4 left-4 z-10 bg-white rounded-2xl p-4 border-neutral-500 border-2">
+      <div className="absolute bottom-4 left-4 z-10 bg-white rounded-2xl p-4 mr-4">
           <p className="text-lg text-center m-0">
             {location ? `${location.address}, ${location.city}, ${location.country}` : "Lädt..."}
           </p>
