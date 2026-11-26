@@ -20,13 +20,6 @@ interface WidgetConfig {
 interface AppConfig {
   myName: string;
   anniversaryDate: string;
-  googleMapsApiKey: string;
-  googleMapsZoom: number;
-  googleMapsStyle: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
   leftWidget: WidgetConfig;
   rightWidget: WidgetConfig;
 }
@@ -60,12 +53,7 @@ function App() {
     
     switch (widget) {
       case "Map":
-        return (
-          <MapWidget
-            zoom={config.googleMapsZoom}
-            mapStyleId={config.googleMapsStyle}
-          />
-        );
+        return <MapWidget />;
       case "Anniversary":
         return <AnniversaryWidget />;
       case "Calendar":
